@@ -7,7 +7,6 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <fcntl.h>
-
 #include <sys/stat.h>
 
 #define BUFSIZE 4096
@@ -59,17 +58,12 @@ int main(int argc, char **argv) {
 	/* Socket Code Here */
 	server = gethostbyname(hostname);
 	if(server == NULL){
-		printf("Error: No such host\n");
-		return EXIT_FAILURE;
+		error("Error: No such host");
 	}
-	//printf("gotserver\n");
-
 
 	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-		printf("Error: Could not create socket\n");
-		return EXIT_FAILURE;
+		error("Error: Could not create socket");
 	}
-	//printf("created socket\n");
 
 	bzero((char *) &serv_addr, sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
@@ -79,21 +73,12 @@ int main(int argc, char **argv) {
 	serv_addr.sin_port = htons(portno);
 
 	if(connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) == -1){
-		printf("Could not establish connection\n");
-		return EXIT_FAILURE;
+		error("Could not establish connection");
 	}
 	bzero(buffer,256);
-	//if(write(sockfd,buffer,strlen(buffer)) == -1){
-	//	error("Write Failure");
-	//}
-
-    //if (read(sockfd,buffer,255) == -1)
-    //     error("ERROR reading from socket");
-
-    //printf("%s\n",buffer);
     open_file_and_write(sockfd, filename);
-	close(sockfd);
 
+	close(sockfd);
 	return EXIT_SUCCESS;
 }
 
@@ -101,8 +86,6 @@ void open_file_and_write (int sock, char * filename)
 {
 
     int fhandle_open;
-    int number_bytes_read = 1;
-    int number_bytes_write = 1;
     int bytes_read;
     int bytes_written;
     char buffer[100];
@@ -132,13 +115,9 @@ void open_file_and_write (int sock, char * filename)
     		bytes_read -= bytes_written;
     		p+=bytes_written;
     	}
-		//number_bytes_write = write(fhandle_open, (void *)buffer, sizeof(buffer));
-		//if (number_bytes_write == -1){
-		//	error("Error writing");
-		//}
     }
 	close(fhandle_open);
-	close(fobj);
+	fclose(fobj);
 }
 
 void error(const char *msg){
