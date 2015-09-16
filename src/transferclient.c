@@ -31,7 +31,6 @@ int main(int argc, char **argv) {
 	char *filename = "foo.txt";
 	struct hostent *server;
 	struct sockaddr_in serv_addr;
-	char buffer[256];
 
 	// Parse and set command line arguments
 	while ((option_char = getopt(argc, argv, "s:p:o:h")) != -1) {
@@ -75,7 +74,6 @@ int main(int argc, char **argv) {
 	if(connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) == -1){
 		error("Could not establish connection");
 	}
-	bzero(buffer,256);
     open_file_and_write(sockfd, filename);
 
 	close(sockfd);
@@ -88,10 +86,10 @@ void open_file_and_write (int sock, char * filename)
     int fhandle_open;
     int bytes_read;
     int bytes_written;
-    char buffer[100];
+    char buffer[BUFSIZE];
     O_APPEND;
     FILE *fobj = fopen(filename, "w");
-    fhandle_open = open(filename, O_RDWR, S_IWRITE | S_IREAD);
+    fhandle_open = open(filename, O_RDWR, S_IRUSR | S_IWUSR);
     if (fhandle_open == -1){
     	error("Error opening file");
 
@@ -99,7 +97,8 @@ void open_file_and_write (int sock, char * filename)
 
     while (1){
 
-    	bytes_read = read(sock, (void *)buffer, sizeof(buffer));
+    	bytes_read = recv(sock, (void *)buffer, sizeof(buffer),0);
+    	printf("client: bytes read %d\n", bytes_read);
     	if (bytes_read == 0){
     		break;
     	}
@@ -109,6 +108,7 @@ void open_file_and_write (int sock, char * filename)
     	void *p = buffer;
     	while (bytes_read > 0){
     		bytes_written = write(fhandle_open, p, bytes_read);
+    		printf("client: bytes written %d\n", bytes_written);
     		if (bytes_written <= 0){
     			error("ERROR writing to socket");
     		}
